@@ -1,0 +1,19 @@
+{
+  "name": "aude-architects-newsletter",
+  "version": "1.0.0",
+  "description": "Système de newsletter pour le site Aude Architects",
+  "main": "newsletter-server.js",
+  "scripts": {
+    "start": "node newsletter-server.js",
+    "dev": "nodemon newsletter-server.js"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  },
+  "keywords": ["newsletter", "architecture", "email"],
+  "author": "Aude Mouradian",
+  "license": "MIT"
+}
