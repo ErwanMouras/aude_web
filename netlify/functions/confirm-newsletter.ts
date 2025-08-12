@@ -1,5 +1,5 @@
 import { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
-import { confirmNewsletterSubscription } from '../../src/utils/supabase';
+import { confirmNewsletterSubscription } from '../utils/supabase';
 import { sendWelcomeEmail } from '../utils/brevo';
 
 export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {

@@ -1,7 +1,7 @@
 import { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
-import { insertContact, Contact } from '../../src/utils/supabase';
+import { insertContact, Contact } from '../utils/supabase';
 import { sendContactNotification, sendContactConfirmation } from '../utils/brevo';
-import { validateTurnstile } from '../utils/turnstile';
+// import { validateTurnstile } from '../utils/turnstile'; // Disabled for now
 
 interface ContactFormData {
   fullName: string;
@@ -71,24 +71,24 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       };
     }
 
-    // Validate Cloudflare Turnstile
-    const turnstileResponse = formData['cf-turnstile-response'];
-    if (!turnstileResponse) {
-      return {
-        statusCode: 400,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Captcha verification required' })
-      };
-    }
+    // Validate Cloudflare Turnstile (disabled for now)
+    // const turnstileResponse = formData['cf-turnstile-response'];
+    // if (!turnstileResponse) {
+    //   return {
+    //     statusCode: 400,
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({ error: 'Captcha verification required' })
+    //   };
+    // }
 
-    const turnstileValid = await validateTurnstile(turnstileResponse, event.headers['x-forwarded-for'] || 'unknown');
-    if (!turnstileValid) {
-      return {
-        statusCode: 400,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Captcha verification failed' })
-      };
-    }
+    // const turnstileValid = await validateTurnstile(turnstileResponse, event.headers['x-forwarded-for'] || 'unknown');
+    // if (!turnstileValid) {
+    //   return {
+    //     statusCode: 400,
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({ error: 'Captcha verification failed' })
+    //   };
+    // }
 
     // Prepare contact data
     const contactData: Contact = {

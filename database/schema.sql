@@ -125,7 +125,7 @@ $$ LANGUAGE plpgsql;
 
 -- Insert default admin user (replace email with actual admin email)
 INSERT INTO admin_users (email, name, role) 
-VALUES ('aude.mouradian@gmail.com', 'Aude Mouradian', 'admin')
+VALUES ('terwan28@gmail.com', 'Aude Mouradian', 'admin')
 ON CONFLICT (email) DO NOTHING;
 
 -- Insert some sample data for development (remove in production)

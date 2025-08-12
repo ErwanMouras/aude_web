@@ -1,5 +1,5 @@
 import { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
-import { insertNewsletterSubscriber, getNewsletterSubscriber, NewsletterSubscriber } from '../../src/utils/supabase';
+import { insertNewsletterSubscriber, getNewsletterSubscriber, NewsletterSubscriber } from '../utils/supabase';
 import { sendDoubleOptinEmail } from '../utils/brevo';
 import { generateRandomToken } from '../utils/helpers';
 
