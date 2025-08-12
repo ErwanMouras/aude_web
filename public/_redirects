@@ -1,0 +1,11 @@
+# Netlify redirects for Aude Mouradian Architecture site
+
+# Admin area
+/admin              /admin/             301
+/admin/*            /admin/index.html   200
+
+# API functions
+/api/*              /.netlify/functions/:splat   200
+
+# Catch-all for SPA behavior - serve index.html for all unmatched routes
+/*                  /index.html         200
