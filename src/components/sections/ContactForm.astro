@@ -243,9 +243,18 @@
       }
       
       try {
+        // Convert FormData to JSON object
+        const formObject = {};
+        for (const [key, value] of formData.entries()) {
+          formObject[key] = value;
+        }
+        
         const response = await fetch('/.netlify/functions/contact', {
           method: 'POST',
-          body: formData
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formObject)
         });
         
         const result = await response.json();

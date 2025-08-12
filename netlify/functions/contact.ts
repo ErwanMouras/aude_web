@@ -1,22 +1,20 @@
 import { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
 import { insertContact, Contact } from '../utils/supabase';
 import { sendContactNotification, sendContactConfirmation } from '../utils/brevo';
-// import { validateTurnstile } from '../utils/turnstile'; // Disabled for now
-
-interface ContactFormData {
-  fullName: string;
-  email: string;
-  phone?: string;
-  projectType: string;
-  projectDescription: string;
-  budget?: string;
-  startDate?: string;
-  files?: File[];
-  gdprConsent: boolean;
-  'cf-turnstile-response': string;
-}
 
 export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
+  // Handle OPTIONS request for CORS
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+      }
+    };
+  }
+
   // Only allow POST method
   if (event.httpMethod !== 'POST') {
     return {
@@ -30,26 +28,36 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
   }
 
   try {
-    // Parse form data
-    let formData: ContactFormData;
+    console.log('Content-Type:', event.headers['content-type']);
+    console.log('Body length:', event.body?.length);
     
-    if (event.headers['content-type']?.includes('multipart/form-data')) {
-      // Handle multipart form data (with files)
-      // For now, we'll handle as JSON - file upload can be added later
-      formData = JSON.parse(event.body || '{}');
-    } else {
-      // Handle JSON data
-      formData = JSON.parse(event.body || '{}');
-    }
+    // Parse JSON data
+    const formFields = JSON.parse(event.body || '{}');
+    console.log('Parsed form fields:', Object.keys(formFields));
+
+    // Extract and validate required fields
+    const fullName = formFields.fullName?.trim();
+    const email = formFields.email?.trim();
+    const projectType = formFields.projectType?.trim();
+    const projectDescription = formFields.projectDescription?.trim();
+    const gdprConsent = formFields.gdprConsent === 'on' || formFields.gdprConsent === 'true' || formFields.gdprConsent === true;
+
+    console.log('Extracted fields:', { fullName, email, projectType, hasDescription: !!projectDescription, gdprConsent });
 
     // Validate required fields
-    const { fullName, email, projectType, projectDescription, gdprConsent } = formData;
-    
     if (!fullName || !email || !projectType || !projectDescription) {
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Missing required fields' })
+        body: JSON.stringify({ 
+          error: 'Missing required fields',
+          missing: {
+            fullName: !fullName,
+            email: !email,
+            projectType: !projectType,
+            projectDescription: !projectDescription
+          }
+        })
       };
     }
 
@@ -71,63 +79,38 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       };
     }
 
-    // Validate Cloudflare Turnstile (disabled for now)
-    // const turnstileResponse = formData['cf-turnstile-response'];
-    // if (!turnstileResponse) {
-    //   return {
-    //     statusCode: 400,
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ error: 'Captcha verification required' })
-    //   };
-    // }
-
-    // const turnstileValid = await validateTurnstile(turnstileResponse, event.headers['x-forwarded-for'] || 'unknown');
-    // if (!turnstileValid) {
-    //   return {
-    //     statusCode: 400,
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ error: 'Captcha verification failed' })
-    //   };
-    // }
-
-    // Prepare contact data
+    // Prepare contact data for database
     const contactData: Contact = {
-      name: fullName.trim(),
-      email: email.toLowerCase().trim(),
-      phone: formData.phone?.trim(),
+      name: fullName,
+      email: email.toLowerCase(),
+      phone: formFields.phone?.trim() || null,
       project_type: projectType,
-      message: projectDescription.trim(),
-      budget: formData.budget,
+      message: projectDescription,
+      budget: formFields.budget?.trim() || null,
       rgpd_consent: gdprConsent,
       status: 'nouveau'
     };
 
     // Parse start date if provided
-    if (formData.startDate) {
+    if (formFields.startDate && formFields.startDate.trim()) {
       try {
-        const startDate = new Date(formData.startDate);
+        const startDate = new Date(formFields.startDate);
         if (!isNaN(startDate.getTime())) {
           contactData.start_date = startDate.toISOString().split('T')[0];
         }
       } catch (e) {
-        // Invalid date, ignore
+        console.log('Invalid date format:', formFields.startDate);
       }
     }
 
+    console.log('Contact data to save:', contactData);
+
     // Save to database
     const savedContact = await insertContact(contactData);
+    console.log('Saved contact:', savedContact.id);
 
-    // Send notification emails in parallel (don't wait for completion)
-    // Temporarily disabled until Brevo is properly configured
-    /*
-    Promise.allSettled([
-      sendContactNotification(savedContact),
-      sendContactConfirmation(savedContact)
-    ]).catch(error => {
-      console.error('Email sending error:', error);
-      // Don't fail the request if emails fail
-    });
-    */
+    // Send notification emails (disabled for now)
+    // Email sending will be re-enabled once Brevo API is configured
 
     return {
       statusCode: 200,
@@ -147,7 +130,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
   } catch (error) {
     console.error('Contact form error:', error);
     
-    // Provide more detailed error information in development
+    // Provide detailed error information for debugging
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const errorDetails = error instanceof Error ? error.stack : JSON.stringify(error);
     
@@ -163,25 +146,10 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       body: JSON.stringify({
         error: 'Internal server error',
         message: 'Unable to process your request. Please try again later.',
-        // Include error details in development
-        ...(process.env.NODE_ENV !== 'production' && { 
-          errorMessage,
-          errorDetails: errorDetails?.split('\n')[0] // First line of stack trace
-        })
+        // Include error details for debugging
+        errorMessage,
+        errorDetails: errorDetails?.split('\n')[0] // First line of stack trace
       })
     };
   }
-};
-
-// Handle preflight requests
-export const OPTIONS: Handler = async () => {
-  return {
-    statusCode: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS'
-    },
-    body: ''
-  };
 };
