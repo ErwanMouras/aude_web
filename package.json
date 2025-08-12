@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@getbrevo/brevo": "^3.0.1",
+    "@netlify/functions": "^2.8.2",
     "@supabase/supabase-js": "^2.55.0",
     "@tailwindcss/vite": "^4.1.11",
     "astro": "^5.12.9",

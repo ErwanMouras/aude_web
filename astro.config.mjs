@@ -5,7 +5,15 @@ import tailwindcss from '@tailwindcss/vite';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://aude-mouradian.netlify.app',
+  output: 'static',
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    build: {
+      rollupOptions: {
+        output: {
+          format: 'esm'
+        }
+      }
+    }
   }
 });
