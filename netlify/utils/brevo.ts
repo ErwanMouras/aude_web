@@ -1,5 +1,5 @@
 import { Configuration, TransactionalEmailsApi, SendSmtpEmail } from '@getbrevo/brevo';
-import type { Contact, NewsletterSubscriber } from '../../src/utils/supabase';
+import type { Contact, NewsletterSubscriber } from './supabase';
 
 // Initialize Brevo API
 const configuration = new Configuration({

@@ -59,8 +59,8 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
           })
         };
       } else if (existingSubscriber.status === 'pending') {
-        // Resend confirmation email
-        await sendDoubleOptinEmail(existingSubscriber);
+        // Resend confirmation email (temporarily disabled)
+        // await sendDoubleOptinEmail(existingSubscriber);
         
         return {
           statusCode: 200,
@@ -87,11 +87,13 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     // Save to database
     const savedSubscriber = await insertNewsletterSubscriber(subscriberData);
 
-    // Send double opt-in email (don't wait for completion)
+    // Send double opt-in email (don't wait for completion) - temporarily disabled
+    /*
     sendDoubleOptinEmail(savedSubscriber).catch(error => {
       console.error('Double opt-in email error:', error);
       // Don't fail the request if email fails
     });
+    */
 
     return {
       statusCode: 200,

@@ -118,6 +118,8 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     const savedContact = await insertContact(contactData);
 
     // Send notification emails in parallel (don't wait for completion)
+    // Temporarily disabled until Brevo is properly configured
+    /*
     Promise.allSettled([
       sendContactNotification(savedContact),
       sendContactConfirmation(savedContact)
@@ -125,6 +127,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       console.error('Email sending error:', error);
       // Don't fail the request if emails fail
     });
+    */
 
     return {
       statusCode: 200,
@@ -144,12 +147,27 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
   } catch (error) {
     console.error('Contact form error:', error);
     
+    // Provide more detailed error information in development
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorDetails = error instanceof Error ? error.stack : JSON.stringify(error);
+    
+    console.error('Error details:', {
+      message: errorMessage,
+      stack: errorDetails,
+      environment: process.env.NODE_ENV
+    });
+    
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         error: 'Internal server error',
-        message: 'Unable to process your request. Please try again later.'
+        message: 'Unable to process your request. Please try again later.',
+        // Include error details in development
+        ...(process.env.NODE_ENV !== 'production' && { 
+          errorMessage,
+          errorDetails: errorDetails?.split('\n')[0] // First line of stack trace
+        })
       })
     };
   }
