@@ -1,0 +1,189 @@
+# Decap CMS Configuration for Aude Mouradian Architecture
+# https://decapcms.org/docs/configuration-options/
+
+# Backend configuration
+backend:
+  name: git-gateway
+  branch: main
+  commit_messages:
+    create: 'Créer "{{slug}}"'
+    update: 'Modifier "{{slug}}"'
+    delete: 'Supprimer "{{slug}}"'
+    uploadMedia: 'Ajouter "{{path}}"'
+    deleteMedia: 'Supprimer "{{path}}"'
+
+# Local backend for development (uncomment for local testing)
+# backend:
+#   name: proxy
+#   proxy_url: http://localhost:8081/api/v1
+
+# Media and public folder configuration
+media_folder: "public/images/uploads"
+public_folder: "/images/uploads"
+
+# Logo and site configuration
+site_url: https://aude-mouradian.netlify.app
+display_url: https://aude-mouradian.netlify.app
+logo_url: https://aude-mouradian.netlify.app/images/logo.png
+
+# Locale
+locale: 'fr'
+
+# Editor configuration
+editor:
+  preview: true
+  
+# Slug configuration
+slug:
+  encoding: "ascii"
+  clean_accents: true
+  sanitize_replacement: "-"
+
+# Collections
+collections:
+  # Blog collection
+  - name: "blog"
+    label: "Blog"
+    label_singular: "Article"
+    description: "Articles de blog et actualités"
+    folder: "src/content/blog"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { label: "Titre", name: "title", widget: "string", required: true }
+      - { label: "Description", name: "description", widget: "text", required: true, hint: "Description courte pour le SEO et les aperçus" }
+      - { label: "Date de publication", name: "publishDate", widget: "datetime", required: true }
+      - { label: "Image principale", name: "image", widget: "image", required: false, hint: "Image d'illustration pour l'article" }
+      - { label: "Catégorie", name: "category", widget: "select", required: true, 
+          options: ["Actualités", "Projets", "Conseils", "Tendances", "Événements"] }
+      - { label: "Tags", name: "tags", widget: "list", required: false, default: [], 
+          hint: "Mots-clés séparés par des virgules" }
+      - { label: "Brouillon", name: "draft", widget: "boolean", default: false, 
+          hint: "Les brouillons ne sont pas publiés sur le site" }
+      - { label: "Contenu", name: "body", widget: "markdown", required: true }
+
+  # Projects collection
+  - name: "projects" 
+    label: "Projets"
+    label_singular: "Projet"
+    description: "Portfolio de projets d'architecture et design"
+    folder: "src/content/projects"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Titre", name: "title", widget: "string", required: true }
+      - { label: "Description courte", name: "description", widget: "text", required: true, 
+          hint: "Description courte affichée dans la galerie" }
+      - { label: "Catégorie", name: "category", widget: "select", required: true,
+          options: [
+            { label: "Architecture d'intérieur", value: "interieur" },
+            { label: "Design d'objets", value: "objets" }, 
+            { label: "Art et créations", value: "art" },
+            { label: "Autres projets", value: "autres" }
+          ] }
+      - { label: "Images", name: "images", widget: "list", required: true,
+          field: { label: "Image", name: "image", widget: "image" },
+          hint: "Première image utilisée comme image principale" }
+      - { label: "Projet vedette", name: "featured", widget: "boolean", default: false,
+          hint: "Les projets vedettes apparaissent en premier dans la galerie" }
+      - { label: "Date du projet", name: "date", widget: "datetime", required: true }
+      - { label: "Lieu", name: "location", widget: "string", required: false,
+          hint: "Ville, région ou pays" }
+      - { label: "Client", name: "client", widget: "string", required: false,
+          hint: "Nom du client (optionnel)" }
+      - { label: "Surface", name: "surface", widget: "string", required: false,
+          hint: "Surface du projet (ex: 120 m²)" }
+      - { label: "Budget", name: "budget", widget: "select", required: false,
+          options: [
+            { label: "Moins de 50 000€", value: "under-50k" },
+            { label: "50 000€ - 150 000€", value: "50k-150k" },
+            { label: "150 000€ - 500 000€", value: "150k-500k" },
+            { label: "Plus de 500 000€", value: "over-500k" }
+          ] }
+      - { label: "Services", name: "services", widget: "list", required: false,
+          default: [], hint: "Services fournis pour ce projet" }
+      - { label: "Description détaillée", name: "body", widget: "markdown", required: true,
+          hint: "Description complète du projet avec détails techniques" }
+
+  # Pages collection
+  - name: "pages"
+    label: "Pages"
+    label_singular: "Page" 
+    description: "Pages statiques du site"
+    files:
+      - label: "À propos"
+        name: "about"
+        file: "src/content/pages/about.md"
+        fields:
+          - { label: "Titre", name: "title", widget: "string", default: "À propos" }
+          - { label: "Description", name: "description", widget: "text" }
+          - { label: "Image principale", name: "image", widget: "image", required: false }
+          - { label: "Contenu", name: "body", widget: "markdown" }
+      
+      - label: "Contact"
+        name: "contact"
+        file: "src/content/pages/contact.md"
+        fields:
+          - { label: "Titre", name: "title", widget: "string", default: "Contact" }
+          - { label: "Description", name: "description", widget: "text" }
+          - { label: "Adresse", name: "address", widget: "text", required: false }
+          - { label: "Téléphone", name: "phone", widget: "string", required: false }
+          - { label: "Email", name: "email", widget: "string" }
+          - { label: "Contenu", name: "body", widget: "markdown" }
+
+  # Settings collection
+  - name: "settings"
+    label: "Configuration"
+    description: "Configuration générale du site"
+    files:
+      - label: "Informations générales"
+        name: "general"
+        file: "src/content/settings/general.json"
+        fields:
+          - { label: "Nom du site", name: "site_name", widget: "string", default: "Aude Mouradian Architecture" }
+          - { label: "Description du site", name: "site_description", widget: "text" }
+          - { label: "URL du site", name: "site_url", widget: "string" }
+          - { label: "Email de contact", name: "contact_email", widget: "string" }
+          - { label: "Téléphone", name: "phone", widget: "string", required: false }
+          - { label: "Adresse", name: "address", widget: "text", required: false }
+          - label: "Réseaux sociaux"
+            name: "social"
+            widget: "object"
+            fields:
+              - { label: "Instagram", name: "instagram", widget: "string", required: false }
+              - { label: "LinkedIn", name: "linkedin", widget: "string", required: false }
+              - { label: "Pinterest", name: "pinterest", widget: "string", required: false }
+              - { label: "Facebook", name: "facebook", widget: "string", required: false }
+          - label: "SEO"
+            name: "seo"
+            widget: "object"
+            fields:
+              - { label: "Mots-clés principaux", name: "keywords", widget: "text", 
+                  hint: "Mots-clés séparés par des virgules" }
+              - { label: "Image par défaut", name: "default_image", widget: "image",
+                  hint: "Image utilisée par défaut pour le partage social" }
+
+      - label: "Navigation"
+        name: "navigation"
+        file: "src/content/settings/navigation.json"
+        fields:
+          - label: "Menu principal"
+            name: "main_menu"
+            widget: "list"
+            fields:
+              - { label: "Titre", name: "title", widget: "string" }
+              - { label: "URL", name: "url", widget: "string" }
+              - { label: "Ordre", name: "order", widget: "number", value_type: "int" }
+              - { label: "Sous-menu", name: "submenu", widget: "list", required: false,
+                  fields: [
+                    { label: "Titre", name: "title", widget: "string" },
+                    { label: "URL", name: "url", widget: "string" }
+                  ] }
+
+# Preview templates (optional)
+# These templates are used to show a preview of content as it's being edited
+# Uncomment and customize as needed:
+# 
+# preview_templates:
+#   blog: "/admin/previews/blog.html"
+#   projects: "/admin/previews/project.html"

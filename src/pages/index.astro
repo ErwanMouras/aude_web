@@ -1,0 +1,48 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import HeroCarousel from '../components/sections/HeroCarousel.astro';
+import ProjectGallery from '../components/sections/ProjectGallery.astro';
+import ContactForm from '../components/sections/ContactForm.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../utils/constants';
+
+// Hero carousel images
+const heroImages = [
+  {
+    src: '/Landing.png',
+    alt: 'Architecture d\'intérieur moderne',
+    title: 'Minimalisme Doux',
+    description: 'Une approche du design centrée sur l\'humain qui mélange fonctionnalité et élégance esthétique'
+  },
+  {
+    src: '/images.jpeg',
+    alt: 'Design contemporain',
+    title: 'Design Moderne',
+    description: 'Créations contemporaines alliant innovation et tradition'
+  },
+  {
+    src: '/placeholder-image.svg',
+    alt: 'Espaces uniques',
+    title: 'Espaces Uniques',
+    description: 'Aménagements sur mesure pour des lieux d\'exception'
+  }
+];
+---
+
+<Layout title={SITE_TITLE} description={SITE_DESCRIPTION}>
+  <Header />
+  
+  <main class="main">
+    <!-- Hero Section with Carousel -->
+    <HeroCarousel images={heroImages} autoplay={true} interval={5000} />
+    
+    <!-- Projects Gallery with Filters -->
+    <ProjectGallery />
+    
+    <!-- Contact Form Section -->
+    <ContactForm />
+  </main>
+  
+  <Footer />
+</Layout>

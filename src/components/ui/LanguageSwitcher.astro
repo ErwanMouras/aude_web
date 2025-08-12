@@ -1,0 +1,122 @@
+---
+// Language switcher component
+---
+
+<div class="language-switcher flex items-center space-x-2 text-sm">
+  <button id="lang-fr" class="lang-btn px-2 py-1 text-[#2c2c2c] hover:text-black transition-colors active" data-lang="fr">
+    FR
+  </button>
+  <span class="text-gray-400">|</span>
+  <button id="lang-en" class="lang-btn px-2 py-1 text-[#2c2c2c] hover:text-black transition-colors" data-lang="en">
+    EN
+  </button>
+</div>
+
+<script>
+  // Language switching functionality
+  const langButtons = document.querySelectorAll('.lang-btn');
+  const elementsToTranslate = document.querySelectorAll('[data-translate]');
+  
+  // Translation dictionary
+  const translations = {
+    fr: {
+      'Soft Minimalism': 'Minimalisme Doux',
+      'hero-description': 'Une approche du design centrée sur l\'humain qui mélange fonctionnalité et élégance esthétique',
+      'Recent Work': 'Travaux Récents',
+      'Residential Project': 'Projet Résidentiel',
+      'Copenhagen, Denmark': 'Copenhague, Danemark',
+      'Commercial Space': 'Espace Commercial',
+      'stockholm-sweden': 'Stockholm, Suède',
+      'Cultural Center': 'Centre Culturel',
+      'oslo-norway': 'Oslo, Norvège',
+      'Furniture Collection': 'Collection de Mobilier',
+      'Design Objects': 'Objets de Design',
+      'Lighting Series': 'Série d\'Éclairage',
+      'Scandinavian Design': 'Design Scandinave',
+      'Interior Design': 'Design d\'Intérieur',
+      'Hospitality Project': 'Projet Hôtelier',
+      'contact-form-title': 'Contactez-nous pour votre projet',
+      'contact-form-subtitle': 'Partagez vos idées et obtenez un devis personnalisé',
+      'tous': 'Tous',
+      'interieur': 'Intérieur',
+      'objets': 'Objets',
+      'art': 'Art',
+      'autres': 'Autres'
+    },
+    en: {
+      'Minimalisme Doux': 'Soft Minimalism',
+      'hero-description': 'A human-centered design approach that blends functionality with aesthetic elegance',
+      'Travaux Récents': 'Recent Work',
+      'Projet Résidentiel': 'Residential Project',
+      'Copenhague, Danemark': 'Copenhagen, Denmark',
+      'Espace Commercial': 'Commercial Space',
+      'Stockholm, Suède': 'Stockholm, Sweden',
+      'Centre Culturel': 'Cultural Center',
+      'Oslo, Norvège': 'Oslo, Norway',
+      'Collection de Mobilier': 'Furniture Collection',
+      'Objets de Design': 'Design Objects',
+      'Série d\'Éclairage': 'Lighting Series',
+      'Design Scandinave': 'Scandinavian Design',
+      'Design d\'Intérieur': 'Interior Design',
+      'Projet Hôtelier': 'Hospitality Project',
+      'Contactez-nous pour votre projet': 'Contact us for your project',
+      'Partagez vos idées et obtenez un devis personnalisé': 'Share your ideas and get a personalized quote',
+      'tous': 'All',
+      'interieur': 'Interior',
+      'objets': 'Objects',
+      'art': 'Art',
+      'autres': 'Others'
+    }
+  };
+  
+  // Get current language from localStorage or default to 'fr'
+  let currentLang = localStorage.getItem('language') || 'fr';
+  
+  // Update active language button
+  function updateActiveLanguage(lang: string) {
+    langButtons.forEach(btn => {
+      btn.classList.remove('active', 'font-semibold');
+      if (btn.getAttribute('data-lang') === lang) {
+        btn.classList.add('active', 'font-semibold');
+      }
+    });
+  }
+  
+  // Translate elements
+  function translatePage(lang: string) {
+    elementsToTranslate.forEach(element => {
+      const key = element.getAttribute('data-translate');
+      if (key && translations[lang] && translations[lang][key]) {
+        if (element.tagName.toLowerCase() === 'input' && element.getAttribute('placeholder')) {
+          element.setAttribute('placeholder', translations[lang][key]);
+        } else {
+          element.textContent = translations[lang][key];
+        }
+      }
+    });
+  }
+  
+  // Initialize page with current language
+  updateActiveLanguage(currentLang);
+  translatePage(currentLang);
+  
+  // Add event listeners to language buttons
+  langButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const lang = button.getAttribute('data-lang');
+      if (lang) {
+        currentLang = lang;
+        localStorage.setItem('language', lang);
+        updateActiveLanguage(lang);
+        translatePage(lang);
+      }
+    });
+  });
+</script>
+
+<style>
+  .lang-btn.active {
+    font-weight: 600;
+    color: #000;
+  }
+</style>

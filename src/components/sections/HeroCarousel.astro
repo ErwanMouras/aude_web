@@ -1,0 +1,205 @@
+---
+interface CarouselImage {
+  src: string;
+  alt: string;
+  title?: string;
+  description?: string;
+}
+
+interface Props {
+  images: CarouselImage[];
+  autoplay?: boolean;
+  interval?: number;
+}
+
+const { 
+  images,
+  autoplay = true,
+  interval = 5000
+} = Astro.props;
+
+// Default images if none provided
+const defaultImages: CarouselImage[] = [
+  {
+    src: '/images/Landing.png',
+    alt: 'Projet Architecture 1',
+    title: 'Minimalisme Doux',
+    description: 'Une approche du design centrée sur l\'humain qui mélange fonctionnalité et élégance esthétique'
+  },
+  {
+    src: '/images/images.jpeg',
+    alt: 'Projet Architecture 2',
+    title: 'Design Moderne',
+    description: 'Créations contemporaines alliant innovation et tradition'
+  },
+  {
+    src: '/images/placeholder-image.svg',
+    alt: 'Projet Architecture 3',
+    title: 'Espaces Uniques',
+    description: 'Aménagements sur mesure pour des lieux d\'exception'
+  }
+];
+
+const carouselImages = images.length > 0 ? images : defaultImages;
+---
+
+<section class="hero relative">
+  <div class="hero-carousel">
+    {carouselImages.map((image, index) => (
+      <div class={`carousel-slide ${index === 0 ? 'active' : ''}`} data-slide={index}>
+        <img 
+          src={image.src} 
+          alt={image.alt}
+          class="w-full h-full object-cover"
+          loading={index === 0 ? 'eager' : 'lazy'}
+        />
+        {(image.title || image.description) && (
+          <div class="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+            <div class="text-center text-white max-w-4xl mx-auto px-6">
+              {image.title && (
+                <h2 class="text-4xl md:text-6xl font-light mb-4" data-translate={image.title}>
+                  {image.title}
+                </h2>
+              )}
+              {image.description && (
+                <p class="text-lg md:text-xl font-light max-w-2xl mx-auto" data-translate="hero-description">
+                  {image.description}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    ))}
+    
+    <!-- Carousel Indicators -->
+    <div class="carousel-indicators">
+      {carouselImages.map((_, index) => (
+        <button 
+          class={`carousel-indicator ${index === 0 ? 'active' : ''}`}
+          data-slide-to={index}
+          aria-label={`Aller à la slide ${index + 1}`}
+        ></button>
+      ))}
+    </div>
+    
+    <!-- Pause/Play button for accessibility -->
+    <button 
+      id="carousel-toggle"
+      class="absolute top-4 right-4 bg-black bg-opacity-50 text-white p-2 rounded-lg hover:bg-opacity-75 transition-all"
+      aria-label="Mettre en pause/reprendre le carrousel"
+    >
+      <svg id="pause-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+      </svg>
+      <svg id="play-icon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+      </svg>
+    </button>
+  </div>
+</section>
+
+<script define:vars={{ autoplay, interval }}>
+  class HeroCarousel {
+    constructor() {
+      this.currentSlide = 0;
+      this.slides = document.querySelectorAll('.carousel-slide');
+      this.indicators = document.querySelectorAll('.carousel-indicator');
+      this.toggleButton = document.getElementById('carousel-toggle');
+      this.pauseIcon = document.getElementById('pause-icon');
+      this.playIcon = document.getElementById('play-icon');
+      this.isPlaying = autoplay;
+      this.intervalId = null;
+      this.interval = interval;
+      
+      this.init();
+    }
+    
+    init() {
+      // Add click handlers to indicators
+      this.indicators.forEach((indicator, index) => {
+        indicator.addEventListener('click', () => this.goToSlide(index));
+      });
+      
+      // Add toggle button handler
+      this.toggleButton?.addEventListener('click', () => this.toggle());
+      
+      // Start autoplay if enabled
+      if (this.isPlaying) {
+        this.startAutoplay();
+      }
+      
+      // Pause on hover
+      const carousel = document.querySelector('.hero-carousel');
+      carousel?.addEventListener('mouseenter', () => this.pauseAutoplay());
+      carousel?.addEventListener('mouseleave', () => {
+        if (this.isPlaying) this.startAutoplay();
+      });
+      
+      // Keyboard navigation
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') this.prevSlide();
+        if (e.key === 'ArrowRight') this.nextSlide();
+        if (e.key === ' ') {
+          e.preventDefault();
+          this.toggle();
+        }
+      });
+    }
+    
+    goToSlide(index) {
+      // Remove active class from current slide and indicator
+      this.slides[this.currentSlide]?.classList.remove('active');
+      this.indicators[this.currentSlide]?.classList.remove('active');
+      
+      // Update current slide
+      this.currentSlide = index;
+      
+      // Add active class to new slide and indicator
+      this.slides[this.currentSlide]?.classList.add('active');
+      this.indicators[this.currentSlide]?.classList.add('active');
+    }
+    
+    nextSlide() {
+      const nextIndex = (this.currentSlide + 1) % this.slides.length;
+      this.goToSlide(nextIndex);
+    }
+    
+    prevSlide() {
+      const prevIndex = this.currentSlide === 0 ? this.slides.length - 1 : this.currentSlide - 1;
+      this.goToSlide(prevIndex);
+    }
+    
+    startAutoplay() {
+      this.intervalId = setInterval(() => {
+        this.nextSlide();
+      }, this.interval);
+    }
+    
+    pauseAutoplay() {
+      if (this.intervalId) {
+        clearInterval(this.intervalId);
+        this.intervalId = null;
+      }
+    }
+    
+    toggle() {
+      this.isPlaying = !this.isPlaying;
+      
+      if (this.isPlaying) {
+        this.startAutoplay();
+        this.pauseIcon?.classList.remove('hidden');
+        this.playIcon?.classList.add('hidden');
+      } else {
+        this.pauseAutoplay();
+        this.pauseIcon?.classList.add('hidden');
+        this.playIcon?.classList.remove('hidden');
+      }
+    }
+  }
+  
+  // Initialize carousel when DOM is loaded
+  document.addEventListener('DOMContentLoaded', () => {
+    new HeroCarousel();
+  });
+</script>

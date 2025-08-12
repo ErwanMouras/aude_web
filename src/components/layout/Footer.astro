@@ -1,0 +1,132 @@
+---
+// Footer component
+---
+
+<footer class="bg-[#2c2c2c] text-white py-12">
+  <div class="container mx-auto px-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+      <!-- Contact Section -->
+      <div class="footer-section">
+        <h3 class="text-lg font-semibold mb-4" data-translate="Contact">Contact</h3>
+        <p class="text-gray-300 mb-2" data-translate="Lyon, France">Lyon, France</p>
+        <a href="mailto:aude.mouradian@gmail.com" class="text-gray-300 hover:text-white transition-colors">
+          aude.mouradian@gmail.com
+        </a>
+      </div>
+      
+      <!-- Social Links -->
+      <div class="footer-section">
+        <h3 class="text-lg font-semibold mb-4" data-translate="Follow">Suivez-nous</h3>
+        <div class="social-links space-y-2">
+          <a href="#" class="block text-gray-300 hover:text-white transition-colors">Instagram</a>
+          <a href="#" class="block text-gray-300 hover:text-white transition-colors">LinkedIn</a>
+          <a href="#" class="block text-gray-300 hover:text-white transition-colors">Pinterest</a>
+        </div>
+      </div>
+      
+      <!-- Newsletter Section -->
+      <div class="footer-section newsletter-section">
+        <h3 class="text-lg font-semibold mb-4" data-translate="Newsletter">Newsletter</h3>
+        <p class="text-gray-300 mb-4 text-sm" data-translate="Stay updated with our latest projects">
+          Restez informé de nos derniers projets
+        </p>
+        <form class="newsletter-form" id="newsletter-form">
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input 
+              type="email" 
+              id="newsletter-email" 
+              name="email"
+              placeholder="Entrez votre email" 
+              data-translate="Enter your email"
+              class="flex-1 px-4 py-2 bg-white text-gray-900 rounded-lg focus:ring-2 focus:ring-white focus:outline-none"
+              required
+            />
+            <button 
+              type="submit" 
+              class="btn-primary whitespace-nowrap" 
+              data-translate="Subscribe"
+            >
+              S'abonner
+            </button>
+          </div>
+          <div id="newsletter-message" class="mt-2 text-sm"></div>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Footer Bottom -->
+    <div class="footer-bottom border-t border-gray-600 pt-6 text-center text-sm text-gray-400">
+      <p>
+        &copy; 2024 Aude Mouradian Architecture. 
+        <span data-translate="All rights reserved">Tous droits réservés</span>.
+      </p>
+      <div class="mt-2 space-x-4">
+        <a href="/privacy-policy" class="hover:text-white transition-colors">Politique de confidentialité</a>
+        <a href="/legal-notices" class="hover:text-white transition-colors">Mentions légales</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Newsletter form submission
+  const newsletterForm = document.getElementById('newsletter-form');
+  const newsletterMessage = document.getElementById('newsletter-message');
+  
+  newsletterForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target as HTMLFormElement);
+    const email = formData.get('email') as string;
+    
+    // Show loading state
+    const submitButton = newsletterForm.querySelector('button[type="submit"]');
+    const originalText = submitButton?.textContent;
+    if (submitButton) {
+      submitButton.textContent = 'En cours...';
+      submitButton.setAttribute('disabled', 'true');
+    }
+    
+    try {
+      const response = await fetch('/.netlify/functions/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        if (newsletterMessage) {
+          newsletterMessage.innerHTML = `
+            <p class="text-green-400">✅ Inscription réussie ! Vérifiez votre email pour confirmer.</p>
+          `;
+        }
+        newsletterForm.reset();
+      } else {
+        throw new Error(result.error || 'Erreur lors de l\'inscription');
+      }
+    } catch (error) {
+      if (newsletterMessage) {
+        newsletterMessage.innerHTML = `
+          <p class="text-red-400">❌ ${error.message || 'Erreur lors de l\'inscription'}</p>
+        `;
+      }
+    } finally {
+      // Reset button state
+      if (submitButton) {
+        submitButton.textContent = originalText;
+        submitButton.removeAttribute('disabled');
+      }
+      
+      // Clear message after 5 seconds
+      setTimeout(() => {
+        if (newsletterMessage) {
+          newsletterMessage.innerHTML = '';
+        }
+      }, 5000);
+    }
+  });
+</script>

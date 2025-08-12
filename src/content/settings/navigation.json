@@ -1,0 +1,50 @@
+{
+  "main_menu": [
+    {
+      "title": "Architecture",
+      "url": "/architecture",
+      "order": 1,
+      "submenu": [
+        { "title": "Résidentiel", "url": "/architecture/residential" },
+        { "title": "Commercial", "url": "/architecture/commercial" },
+        { "title": "Hôtellerie", "url": "/architecture/hospitality" }
+      ]
+    },
+    {
+      "title": "Design",
+      "url": "/design",
+      "order": 2,
+      "submenu": [
+        { "title": "Mobilier", "url": "/design/furniture" },
+        { "title": "Éclairage", "url": "/design/lighting" },
+        { "title": "Objets", "url": "/design/objects" },
+        { "title": "Sur Mesure", "url": "/design/bespoke" }
+      ]
+    },
+    {
+      "title": "Créatif",
+      "url": "/creative",
+      "order": 3,
+      "submenu": [
+        { "title": "Expositions", "url": "/creative/exhibitions" },
+        { "title": "Publications", "url": "/creative/publications" },
+        { "title": "Photographie", "url": "/creative/photography" }
+      ]
+    },
+    {
+      "title": "Studio",
+      "url": "/studio",
+      "order": 4,
+      "submenu": [
+        { "title": "À Propos", "url": "/about" },
+        { "title": "Contact", "url": "/contact" },
+        { "title": "Presse", "url": "/press" }
+      ]
+    },
+    {
+      "title": "Blog",
+      "url": "/blog",
+      "order": 5
+    }
+  ]
+}

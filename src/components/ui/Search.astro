@@ -1,0 +1,313 @@
+---
+// Search component using Pagefind
+interface Props {
+  placeholder?: string;
+  className?: string;
+}
+
+const { 
+  placeholder = "Rechercher dans le blog et les projets...",
+  className = ""
+} = Astro.props;
+---
+
+<div class={`search-container ${className}`}>
+  <div class="relative">
+    <div id="search" class="pagefind-search">
+      <div class="search-input-wrapper relative">
+        <input 
+          type="search" 
+          placeholder={placeholder}
+          id="search-input"
+          class="w-full px-4 py-3 pl-12 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none bg-white"
+        />
+        <svg 
+          class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+    </div>
+    <div id="search-results" class="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-2 z-50 hidden">
+      <div class="p-4">
+        <div class="text-sm text-gray-500 mb-3">
+          <span id="search-results-count">0</span> résultat(s) trouvé(s)
+        </div>
+        <div id="search-results-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  class SearchInterface {
+    constructor() {
+      this.searchInput = document.getElementById('search-input');
+      this.searchResults = document.getElementById('search-results');
+      this.searchResultsList = document.getElementById('search-results-list');
+      this.searchResultsCount = document.getElementById('search-results-count');
+      this.pagefind = null;
+      this.debounceTimeout = null;
+      
+      this.init();
+    }
+    
+    async init() {
+      try {
+        // Load Pagefind
+        this.pagefind = await import('/pagefind/pagefind.js');
+        await this.pagefind.init();
+        
+        // Setup event listeners
+        this.searchInput?.addEventListener('input', (e) => this.handleSearch(e));
+        this.searchInput?.addEventListener('focus', () => this.showResults());
+        
+        // Close results when clicking outside
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('.search-container')) {
+            this.hideResults();
+          }
+        });
+        
+        // Keyboard navigation
+        this.searchInput?.addEventListener('keydown', (e) => this.handleKeyboard(e));
+        
+      } catch (error) {
+        console.warn('Pagefind not available:', error);
+        this.fallbackSearch();
+      }
+    }
+    
+    handleSearch(e) {
+      const query = e.target.value.trim();
+      
+      // Clear previous timeout
+      if (this.debounceTimeout) {
+        clearTimeout(this.debounceTimeout);
+      }
+      
+      // Debounce search
+      this.debounceTimeout = setTimeout(() => {
+        if (query.length >= 2) {
+          this.performSearch(query);
+        } else {
+          this.clearResults();
+        }
+      }, 300);
+    }
+    
+    async performSearch(query) {
+      if (!this.pagefind) {
+        this.fallbackSearch(query);
+        return;
+      }
+      
+      try {
+        this.showLoadingState();
+        
+        const search = await this.pagefind.search(query, {
+          verbose: true,
+          excerpt_length: 20
+        });
+        
+        await this.displayResults(search.results, query);
+        
+      } catch (error) {
+        console.error('Search error:', error);
+        this.showErrorState();
+      }
+    }
+    
+    async displayResults(results, query) {
+      if (!this.searchResultsList || !this.searchResultsCount) return;
+      
+      // Update count
+      this.searchResultsCount.textContent = results.length.toString();
+      
+      if (results.length === 0) {
+        this.searchResultsList.innerHTML = `
+          <div class="text-center py-4 text-gray-500">
+            <p>Aucun résultat trouvé pour "<strong>${query}</strong>"</p>
+            <p class="text-sm mt-2">Essayez avec d'autres mots-clés</p>
+          </div>
+        `;
+        this.showResults();
+        return;
+      }
+      
+      // Load full results
+      const fullResults = await Promise.all(
+        results.slice(0, 8).map(result => result.data())
+      );
+      
+      // Generate HTML
+      const resultsHTML = fullResults.map(result => {
+        const url = result.url;
+        const title = result.meta?.title || result.url;
+        const excerpt = result.excerpt || '';
+        const type = this.getResultType(url);
+        
+        return `
+          <div class="search-result-item border-b border-gray-100 py-3 last:border-b-0">
+            <div class="flex items-start space-x-3">
+              <div class="flex-shrink-0">
+                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium ${this.getTypeStyles(type)}">
+                  ${type}
+                </span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <a href="${url}" class="block hover:bg-gray-50 -m-2 p-2 rounded">
+                  <h3 class="text-sm font-medium text-gray-900 truncate">
+                    ${title}
+                  </h3>
+                  ${excerpt ? `
+                    <p class="text-sm text-gray-600 mt-1 line-clamp-2">
+                      ${excerpt}
+                    </p>
+                  ` : ''}
+                  <p class="text-xs text-gray-400 mt-1">
+                    ${url}
+                  </p>
+                </a>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      this.searchResultsList.innerHTML = resultsHTML;
+      this.showResults();
+    }
+    
+    getResultType(url) {
+      if (url.includes('/blog/')) return 'Article';
+      if (url.includes('/projects/')) return 'Projet';
+      if (url.includes('/about')) return 'À propos';
+      if (url.includes('/contact')) return 'Contact';
+      return 'Page';
+    }
+    
+    getTypeStyles(type) {
+      const styles = {
+        'Article': 'bg-blue-100 text-blue-800',
+        'Projet': 'bg-green-100 text-green-800', 
+        'À propos': 'bg-purple-100 text-purple-800',
+        'Contact': 'bg-orange-100 text-orange-800',
+        'Page': 'bg-gray-100 text-gray-800'
+      };
+      return styles[type] || styles['Page'];
+    }
+    
+    showLoadingState() {
+      if (this.searchResultsList) {
+        this.searchResultsList.innerHTML = `
+          <div class="text-center py-4">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mx-auto"></div>
+            <p class="text-sm text-gray-500 mt-2">Recherche en cours...</p>
+          </div>
+        `;
+      }
+      this.showResults();
+    }
+    
+    showErrorState() {
+      if (this.searchResultsList) {
+        this.searchResultsList.innerHTML = `
+          <div class="text-center py-4 text-red-500">
+            <p>Erreur lors de la recherche</p>
+            <p class="text-sm mt-2">Veuillez réessayer</p>
+          </div>
+        `;
+      }
+      this.showResults();
+    }
+    
+    fallbackSearch(query) {
+      // Simple fallback for when Pagefind is not available
+      if (this.searchResultsList && query) {
+        this.searchResultsList.innerHTML = `
+          <div class="text-center py-4 text-gray-500">
+            <p>Recherche non disponible</p>
+            <p class="text-sm mt-2">La recherche sera disponible après le build du site</p>
+          </div>
+        `;
+        this.showResults();
+      }
+    }
+    
+    showResults() {
+      this.searchResults?.classList.remove('hidden');
+    }
+    
+    hideResults() {
+      this.searchResults?.classList.add('hidden');
+    }
+    
+    clearResults() {
+      if (this.searchResultsList) {
+        this.searchResultsList.innerHTML = '';
+      }
+      if (this.searchResultsCount) {
+        this.searchResultsCount.textContent = '0';
+      }
+      this.hideResults();
+    }
+    
+    handleKeyboard(e) {
+      if (e.key === 'Escape') {
+        this.hideResults();
+        this.searchInput?.blur();
+      }
+    }
+  }
+  
+  // Initialize search when DOM is loaded
+  document.addEventListener('DOMContentLoaded', () => {
+    new SearchInterface();
+  });
+  
+  // Re-initialize after page navigation (for SPA behavior)
+  document.addEventListener('astro:page-load', () => {
+    new SearchInterface();
+  });
+</script>
+
+<style>
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  .search-result-item:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+  
+  /* Custom scrollbar for results */
+  #search-results {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+  #search-results::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  #search-results::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+  
+  #search-results::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+  }
+  
+  #search-results::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+  }
+</style>

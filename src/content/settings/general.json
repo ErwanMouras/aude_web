@@ -1,0 +1,18 @@
+{
+  "site_name": "Aude Mouradian Architecture",
+  "site_description": "Architecture d'intérieur et design par Aude Mouradian. Créations contemporaines alliant innovation et tradition pour des espaces uniques.",
+  "site_url": "https://aude-mouradian.netlify.app",
+  "contact_email": "aude.mouradian@gmail.com",
+  "phone": "+33 6 12 34 56 78",
+  "address": "Lyon, France",
+  "social": {
+    "instagram": "https://instagram.com/audemouradian",
+    "linkedin": "https://linkedin.com/in/aude-mouradian",
+    "pinterest": "https://pinterest.com/audemouradian",
+    "facebook": ""
+  },
+  "seo": {
+    "keywords": "architecture intérieur, design, lyon, aménagement, décoration, mobilier, éclairage, rénovation",
+    "default_image": "/images/Landing.png"
+  }
+}

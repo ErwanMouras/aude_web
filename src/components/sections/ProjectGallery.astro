@@ -1,0 +1,229 @@
+---
+import { PROJECT_CATEGORIES } from '../../utils/constants';
+
+interface Project {
+  id: string;
+  title: string;
+  location: string;
+  image: string;
+  category: string;
+  cursorText?: string;
+}
+
+interface Props {
+  projects?: Project[];
+}
+
+const { projects } = Astro.props;
+
+// Default projects if none provided
+const defaultProjects: Project[] = [
+  {
+    id: '1',
+    title: 'Projet Résidentiel',
+    location: 'Copenhague, Danemark',
+    image: '/images/images.jpeg',
+    category: 'interieur',
+    cursorText: 'Projet Résidentiel'
+  },
+  {
+    id: '2',
+    title: 'Espace Commercial',
+    location: 'Stockholm, Suède',
+    image: '/images/images.jpeg',
+    category: 'interieur',
+    cursorText: 'Espace Commercial'
+  },
+  {
+    id: '3',
+    title: 'Centre Culturel',
+    location: 'Oslo, Norvège',
+    image: '/images/images.jpeg',
+    category: 'art',
+    cursorText: 'Centre Culturel'
+  },
+  {
+    id: '4',
+    title: 'Collection de Mobilier',
+    location: 'Objets de Design',
+    image: '/images/images.jpeg',
+    category: 'objets',
+    cursorText: 'Collection de Mobilier'
+  },
+  {
+    id: '5',
+    title: 'Série d\'Éclairage',
+    location: 'Design Scandinave',
+    image: '/images/images.jpeg',
+    category: 'objets',
+    cursorText: 'Série d\'Éclairage'
+  },
+  {
+    id: '6',
+    title: 'Design d\'Intérieur',
+    location: 'Projet Hôtelier',
+    image: '/images/images.jpeg',
+    category: 'interieur',
+    cursorText: 'Design d\'Intérieur'
+  }
+];
+
+const galleryProjects = projects || defaultProjects;
+
+// Count projects by category
+const categoryCounts = PROJECT_CATEGORIES.reduce((acc, category) => {
+  if (category === 'tous') {
+    acc[category] = galleryProjects.length;
+  } else {
+    acc[category] = galleryProjects.filter(p => p.category === category).length;
+  }
+  return acc;
+}, {} as Record<string, number>);
+---
+
+<section class="projects py-16">
+  <div class="container mx-auto px-6">
+    <!-- Section Title -->
+    <div class="text-center mb-12">
+      <h2 class="text-3xl md:text-4xl font-light text-[#2c2c2c] mb-4" data-translate="Recent Work">
+        Travaux Récents
+      </h2>
+    </div>
+    
+    <!-- Filter Buttons -->
+    <div class="filter-buttons mb-12">
+      {PROJECT_CATEGORIES.map((category, index) => (
+        <button 
+          class={`filter-btn ${index === 0 ? 'active' : ''}`}
+          data-filter={category}
+          data-translate={category}
+        >
+          {category === 'tous' ? 'Tous' : 
+           category === 'interieur' ? 'Intérieur' :
+           category === 'objets' ? 'Objets' :
+           category === 'art' ? 'Art' : 'Autres'}
+          <span class="ml-2 text-xs opacity-75">({categoryCounts[category]})</span>
+        </button>
+      ))}
+    </div>
+    
+    <!-- Project Grid -->
+    <div class="project-grid" id="project-grid">
+      {galleryProjects.map((project) => (
+        <article 
+          class="project-item fade-in" 
+          data-category={project.category}
+          data-cursor-text={project.cursorText || project.title}
+          data-cursor-location={project.location}
+        >
+          <div class="project-image">
+            <img 
+              src={project.image} 
+              alt={project.title}
+              loading="lazy"
+              class="w-full h-full object-cover"
+            />
+          </div>
+          <div class="project-info mt-4">
+            <h3 class="text-lg font-medium text-[#2c2c2c] mb-1" data-translate={project.title}>
+              {project.title}
+            </h3>
+            <p class="text-sm text-gray-600" data-translate={project.location}>
+              {project.location}
+            </p>
+          </div>
+        </article>
+      ))}
+    </div>
+    
+    <!-- Results Counter -->
+    <div class="text-center mt-8">
+      <p class="text-sm text-gray-600">
+        <span id="results-count">{galleryProjects.length}</span> projet(s) affiché(s)
+      </p>
+    </div>
+  </div>
+</section>
+
+<script>
+  class ProjectGallery {
+    constructor() {
+      this.filterButtons = document.querySelectorAll('.filter-btn');
+      this.projectItems = document.querySelectorAll('.project-item');
+      this.resultsCount = document.getElementById('results-count');
+      this.currentFilter = 'tous';
+      
+      this.init();
+    }
+    
+    init() {
+      // Add click handlers to filter buttons
+      this.filterButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+          const filter = e.currentTarget.getAttribute('data-filter');
+          this.filterProjects(filter);
+        });
+      });
+      
+      // Initialize with all projects visible
+      this.updateResultsCount(this.projectItems.length);
+    }
+    
+    filterProjects(category) {
+      // Update current filter
+      this.currentFilter = category;
+      
+      // Update active button
+      this.filterButtons.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-filter') === category) {
+          btn.classList.add('active');
+        }
+      });
+      
+      let visibleCount = 0;
+      
+      // Filter project items with animation
+      this.projectItems.forEach((item, index) => {
+        const itemCategory = item.getAttribute('data-category');
+        const shouldShow = category === 'tous' || itemCategory === category;
+        
+        // Add staggered animation delay
+        setTimeout(() => {
+          if (shouldShow) {
+            item.style.display = 'block';
+            item.classList.add('scale-in');
+            visibleCount++;
+          } else {
+            item.style.display = 'none';
+            item.classList.remove('scale-in');
+          }
+        }, index * 50);
+      });
+      
+      // Update results count after animation
+      setTimeout(() => {
+        const actualVisibleCount = Array.from(this.projectItems).filter(
+          item => item.style.display !== 'none'
+        ).length;
+        this.updateResultsCount(actualVisibleCount);
+      }, this.projectItems.length * 50 + 100);
+    }
+    
+    updateResultsCount(count) {
+      if (this.resultsCount) {
+        this.resultsCount.textContent = count.toString();
+      }
+    }
+  }
+  
+  // Initialize gallery when DOM is loaded
+  document.addEventListener('DOMContentLoaded', () => {
+    new ProjectGallery();
+  });
+  
+  // Re-initialize after page navigation (for SPA behavior)
+  document.addEventListener('astro:page-load', () => {
+    new ProjectGallery();
+  });
+</script>

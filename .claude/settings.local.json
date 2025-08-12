@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "WebFetch(domain:normcph.com)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(npm create:*)",
+      "Bash(mkdir:*)",
+      "Bash(npx astro add tailwind:*)",
+      "Bash(cp:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": []
   }

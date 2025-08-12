@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>Admin - Aude Mouradian Architecture</title>
+  <link href="/admin/config.yml" type="text/yaml" rel="cms-config-url">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  
+  <!-- Decap CMS -->
+  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+  
+  <!-- Custom styling for CMS -->
+  <style>
+    :root {
+      --primary-color: #2c2c2c;
+      --background-color: #f8f6f0;
+    }
+    
+    /* Custom logo */
+    .css-1ih0ipn-SidebarContainer {
+      background: var(--background-color);
+    }
+    
+    /* Custom header */
+    .css-v758ki-AppHeaderContent::before {
+      content: "Aude Mouradian Architecture - Administration";
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+    
+    /* Hide default CMS name */
+    .css-v758ki-AppHeaderContent h1 {
+      display: none;
+    }
+    
+    /* Custom preview styling */
+    .css-1wx7u11-PreviewPane iframe {
+      background: white;
+    }
+  </style>
+</head>
+<body>
+  <!-- This script will display an authentication form when the user is not logged in -->
+  <script>
+    if (window.netlifyIdentity) {
+      window.netlifyIdentity.on("init", user => {
+        if (!user) {
+          window.netlifyIdentity.on("login", () => {
+            document.location.href = "/admin/";
+          });
+        }
+      });
+    }
+  </script>
+</body>
+</html>

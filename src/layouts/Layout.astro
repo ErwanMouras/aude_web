@@ -1,0 +1,148 @@
+---
+import '../styles/global.css';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../utils/constants';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+}
+
+const { 
+  title = SITE_TITLE,
+  description = SITE_DESCRIPTION,
+  image = '/images/Landing.png'
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'http://localhost:4321');
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href={canonicalURL} />
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL(image, Astro.site || 'http://localhost:4321')} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:type" content="website" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={new URL(image, Astro.site || 'http://localhost:4321')} />
+    
+    <!-- Schema.org -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Aude Mouradian Architecture",
+        "url": "https://aude-mouradian.com",
+        "logo": "https://aude-mouradian.com/images/logo.png",
+        "description": "Architecture d'intérieur et design par Aude Mouradian",
+        "address": {
+          "@type": "PostalAddress",
+          "addressCountry": "FR"
+        }
+      }
+    </script>
+    
+    <title>{title}</title>
+  </head>
+  <body>
+    <!-- Custom Cursor -->
+    <div class="custom-cursor"></div>
+    <div class="cursor-text"></div>
+    
+    <slot />
+    
+    <script>
+      // Custom cursor functionality
+      const cursor = document.querySelector('.custom-cursor');
+      const cursorText = document.querySelector('.cursor-text');
+      
+      let mouseX = 0, mouseY = 0;
+      let cursorX = 0, cursorY = 0;
+      
+      document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      });
+      
+      function animateCursor() {
+        const speed = 0.15;
+        cursorX += (mouseX - cursorX) * speed;
+        cursorY += (mouseY - cursorY) * speed;
+        
+        if (cursor) {
+          cursor.style.left = cursorX + 'px';
+          cursor.style.top = cursorY + 'px';
+        }
+        
+        if (cursorText) {
+          cursorText.style.left = cursorX + 'px';
+          cursorText.style.top = (cursorY - 40) + 'px';
+        }
+        
+        requestAnimationFrame(animateCursor);
+      }
+      
+      animateCursor();
+      
+      // Show cursor only in project sections
+      const projectSection = document.querySelector('.projects');
+      if (projectSection) {
+        projectSection.addEventListener('mouseenter', () => {
+          cursor?.classList.add('active');
+        });
+        
+        projectSection.addEventListener('mouseleave', () => {
+          cursor?.classList.remove('active');
+          cursorText?.classList.remove('active');
+        });
+        
+        // Project item hover effects
+        const projectItems = document.querySelectorAll('.project-item');
+        projectItems.forEach(item => {
+          item.addEventListener('mouseenter', () => {
+            const text = item.getAttribute('data-cursor-text');
+            const location = item.getAttribute('data-cursor-location');
+            if (cursorText && text) {
+              cursorText.textContent = `${text} - ${location}`;
+              cursorText.classList.add('active');
+            }
+          });
+          
+          item.addEventListener('mouseleave', () => {
+            cursorText?.classList.remove('active');
+          });
+        });
+      }
+      
+      // Smooth scrolling for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute('href'));
+          if (target) {
+            target.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
+            });
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
